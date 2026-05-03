@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
+set -e
 
-ln -s .dotfiles/.tmux.conf .tmux.conf
-ln -s .dotfiles/.config/nvim .config/nvim
-ln -s .dotfiles/.config/bin .config/bin
-ln -s .dotfiles/vim/.vimrc .vimrc
+DOTFILES_DIR="$HOME/.dotfiles"
+STOW_FOLDERS=(nvim vim tmux)
+
+BASHRC_LINE='source ~/.dotfiles/bashrc'
+
+if ! grep -qxF "$BASHRC_LINE" "$HOME/.bashrc"; then
+    echo "Updating ~/.bashrc..."
+    echo "" >> "$HOME/.bashrc"
+    echo "# dotfiles" >> "$HOME/.bashrc"
+    echo "$BASHRC_LINE" >> "$HOME/.bashrc"
+fi
+
+cd "$DOTFILES_DIR"
+
+for folder in "${STOW_FOLDERS[@]}"; do
+    if [ -d "$folder" ]; then
+        echo "Stowing $folder"
+        stow -D "$folder" 2>/dev/null || true
+        stow "$folder"
+    fi
+done
+
+echo "Dotfiles setup complete!"
